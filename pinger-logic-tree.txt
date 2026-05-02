@@ -1,0 +1,104 @@
+pinger — Logic Tree
+
+pinger (SDK)
+│
+├── Identity
+│   ├── family: pinger
+│   ├── variant: pinger-sdk
+│   ├── pair: pingerSLA
+│   ├── location: dev/untitledSDK/shells/desktop/pinger.py
+│   └── version: 0.1.0
+│
+├── Launch
+│   ├── python pinger.py          # foreground
+│   ├── pythonw pinger.py         # background
+│   └── sets AppUserModelID → untitledSDK.pinger
+│
+├── Frame (SDK)
+│   ├── FramelessWindowHint + WindowStaysOnTopHint
+│   ├── TitleBar
+│   │   ├── gradient fill (TITLE_ACTIVE → TITLE_ACTIVE_LIGHT)
+│   │   ├── draggable
+│   │   ├── minimize (Marlett "0")
+│   │   └── close (Marlett "r")
+│   ├── Body
+│   │   └── button row (HBoxLayout, 6px spacing)
+│   └── StatusBar
+│       └── sunken fields, updatable via set_fields()
+│
+├── Buttons
+│   ├── [1] Ping!
+│   │   ├── increment counter
+│   │   ├── pick random test ping message
+│   │   ├── droid_chirp() → 5-note random pattern via winsound.Beep
+│   │   └── update status bar
+│   │
+│   ├── [2] Mini-Mac
+│   │   ├── launch retro_mac.pyw via subprocess
+│   │   ├── guard: skip if already running (poll)
+│   │   └── update status bar → "Mini-Mac running"
+│   │
+│   ├── [3] Stop Mini-Mac
+│   │   ├── terminate subprocess
+│   │   └── update status bar → "Mini-Mac stopped"
+│   │
+│   ├── [4] scrollstack()
+│   │   ├── toggle behavior
+│   │   ├── start: launch scrollstack.py --zone left_third --display 1 --class CASCADIA --scroll-from center_third
+│   │   ├── stop: terminate subprocess
+│   │   ├── button text swaps: "scrollstack()" ↔ "stop scrollstack"
+│   │   ├── active state: purple background (#800080)
+│   │   └── update status bar
+│   │
+│   └── [5] snap.region()
+│       ├── launch ShareX -RectangleRegion
+│       └── update status bar → "snap.region() fired"
+│
+├── Auto-Position
+│   ├── SystemParametersInfoW(48) → work area rect
+│   └── center-bottom of primary display (excludes taskbar)
+│
+├── Dependencies
+│   ├── SDK: core.styles, elements.button (SDKButton)
+│   ├── external: retro-mac, scrollstack, ShareX
+│   └── stdlib: winsound, subprocess, ctypes
+│
+└── Lineage
+    ├── parent: dev/questboard/pingle/pinger.pyw (standalone, superseded)
+    ├── current: dev/untitledSDK/shells/desktop/pinger.py (SDK-framed)
+    └── sibling: dev/untitledSDK/shells/desktop/pingerSLA.py (SLA timer)
+
+
+pingerSLA — Logic Tree
+
+pingerSLA
+│
+├── Identity
+│   ├── family: pinger
+│   ├── variant: pingerSLA
+│   ├── pair: pinger-sdk
+│   ├── location: dev/untitledSDK/shells/desktop/pingerSLA.py
+│   └── version: 0.1.0
+│
+├── Modes
+│   ├── [headless] pingerSLA.py fire <bell> [note]    # play bell immediately
+│   ├── [headless] pingerSLA.py sla <minutes> [note]  # fire at interval
+│   └── [gui]      pingerSLA.py ui                    # open timer UI
+│
+├── UI (gui mode)
+│   ├── fire at: QTimeEdit (HH:MM AM/PM)
+│   ├── note: QLineEdit (optional)
+│   ├── bell: QComboBox (9 options)
+│   │   ├── cyberpunk, arcade_80s, radio_static, miyazaki
+│   │   ├── midi_clean, alert, completion
+│   │   └── overrun, milestone
+│   ├── preview → play selected bell
+│   └── set timer → schedule fire at specified time
+│
+├── Bells
+│   └── shells/desktop/bells/
+│       └── 9x .wav files, generated via generate_bells.py
+│
+└── Lineage
+    ├── parent: pinger-sdk (split from pinger as independent SLA tool)
+    └── standalone: no SDK frame dependency for headless mode

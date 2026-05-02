@@ -1,0 +1,47 @@
+family: pinger
+scheme: pCMS
+
+variants:
+  - name: pinger
+    generation: gen2
+    status: operant
+    surface: sdk
+    version: 0.1.0
+    file: pinger.py
+    pair: pingerSLA
+    sdk: untitledSDK
+    forked_from:
+      variant: core
+      version: 1.0.0
+      location: dev/questboard/pingle/pinger.pyw
+      date: 2026-04-26
+
+  - name: pingerSLA
+    generation: gen2
+    status: operant
+    surface: sdk
+    version: 0.1.0
+    file: pingerSLA.py
+    pair: pinger
+    modes: [headless, ui]
+    forked_from:
+      variant: core
+      version: 1.0.0
+      location: dev/questboard/pingle/pinger.pyw
+      date: 2026-04-26
+
+  - name: pinger.core
+    generation: gen5
+    status: composted
+    surface: standalone
+    version: 1.2.0
+    file: .lineage/pinger.core.pyw
+    note: standalone PyQt5, code drift, superseded by SDK rebuild
+
+  - name: pinger.core.git
+    generation: gen5
+    status: composted
+    surface: standalone
+    version: 1.0.0
+    file: .lineage/pinger.core.git.pyw
+    note: last committed clean version before drift
