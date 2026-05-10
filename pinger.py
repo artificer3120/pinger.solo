@@ -324,28 +324,22 @@ class Pinger(BaseFrame):
             self._status(f"snap failed: {e}", self.theme.accent_red)
 
     def launchAetherflow(self):
-        """Open a new Windows Terminal tab with the aetherflow persona menu."""
+        """Spawn a new pwsh console, dot-source aetherflow profile, run menu.
+
+        aetherflow itself spawns wt tabs for the chosen persona, so we don't
+        need to wrap our launch in wt. A plain new pwsh console is enough —
+        and avoids the wt.exe argument-parsing mangling we hit before.
+        """
         if not os.path.exists(AETHERFLOW_PROFILE):
             self._status("aetherflow profile not found", self.theme.accent_red)
             return
         try:
             subprocess.Popen(
-                ["wt.exe", "-w", "0", "new-tab",
-                 "--title", "aetherflow",
-                 "pwsh", "-NoExit", "-Command",
+                ["pwsh", "-NoExit", "-Command",
                  f". '{AETHERFLOW_PROFILE}'; aetherflow"],
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
             )
             self._status("aetherflow launched")
-        except FileNotFoundError:
-            try:
-                subprocess.Popen(
-                    ["pwsh", "-NoExit", "-Command",
-                     f". '{AETHERFLOW_PROFILE}'; aetherflow"],
-                )
-                self._status("aetherflow launched (no wt)")
-            except Exception as e:
-                self._status(f"aetherflow failed: {e}", self.theme.accent_red)
         except Exception as e:
             self._status(f"aetherflow failed: {e}", self.theme.accent_red)
 
