@@ -37,6 +37,7 @@ LOCALMESH_URL  = "http://127.0.0.1:8801"
 RETRO_MAC_PATH = os.path.expanduser("~/dev/retro-mac/retro_mac.pyw")
 SCROLLSTACK_PATH = os.path.expanduser("~/forge3/scrollstack/scrollstack.py")
 SHAREX = r"C:\Program Files\ShareX\ShareX.exe"
+AETHERFLOW_PROFILE = os.path.expanduser("~/dev/aetherflow/profile.ps1")
 ICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pinger.ico")
 
 TEST_PINGS = [
@@ -135,7 +136,7 @@ class Pinger(BaseFrame):
         super().__init__(app_name="pinger.solo", default_pct=0.18, theme="radix")
         self._reshape_titlebar()
         self.layout().activate()
-        self.setFixedSize(620, self.sizeHint().height())
+        self.setFixedSize(760, self.sizeHint().height())
         self._auto_position()
 
     def _reshape_titlebar(self):
@@ -224,6 +225,10 @@ class Pinger(BaseFrame):
         self.btn_snap = RadixButton("snap", kind="secondary")
         self.btn_snap.clicked.connect(self.snapRegion)
         row.addWidget(self.btn_snap)
+
+        self.btn_aether = RadixButton("aetherflow", kind="purple")
+        self.btn_aether.clicked.connect(self.launchAetherflow)
+        row.addWidget(self.btn_aether)
 
         bv.addLayout(row)
         layout.addWidget(body)
@@ -317,6 +322,32 @@ class Pinger(BaseFrame):
             self._status("snap fired")
         except Exception as e:
             self._status(f"snap failed: {e}", self.theme.accent_red)
+
+    def launchAetherflow(self):
+        """Open a new Windows Terminal tab with the aetherflow persona menu."""
+        if not os.path.exists(AETHERFLOW_PROFILE):
+            self._status("aetherflow profile not found", self.theme.accent_red)
+            return
+        try:
+            subprocess.Popen(
+                ["wt.exe", "-w", "0", "new-tab",
+                 "--title", "aetherflow",
+                 "pwsh", "-NoExit", "-Command",
+                 f". '{AETHERFLOW_PROFILE}'; aetherflow"],
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            )
+            self._status("aetherflow launched")
+        except FileNotFoundError:
+            try:
+                subprocess.Popen(
+                    ["pwsh", "-NoExit", "-Command",
+                     f". '{AETHERFLOW_PROFILE}'; aetherflow"],
+                )
+                self._status("aetherflow launched (no wt)")
+            except Exception as e:
+                self._status(f"aetherflow failed: {e}", self.theme.accent_red)
+        except Exception as e:
+            self._status(f"aetherflow failed: {e}", self.theme.accent_red)
 
 
 def main():
