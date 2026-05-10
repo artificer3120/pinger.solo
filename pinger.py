@@ -18,6 +18,11 @@ import winsound
 import ctypes
 import ctypes.wintypes
 
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
 SDK_PATH = os.path.expanduser("~/dev/untitledSDK")
 sys.path.insert(0, SDK_PATH)
 
@@ -133,6 +138,12 @@ class Pinger(BaseFrame):
         self.minimac_proc = None
         self.scrollstack_proc = None
 
+        # Adopt-or-kill orphans from prior pinger sessions. When pinger restarts,
+        # any subprocess it previously spawned (scrollstack, mini-mac) loses its
+        # parent reference but the process keeps running. Multiple instances
+        # fighting over the same zone is the "weird scrollstack" symptom.
+        self._reapOrphans()
+
         super().__init__(app_name="pinger.solo", default_pct=0.18, theme="radix")
         self._reshape_titlebar()
         self.layout().activate()
@@ -181,6 +192,25 @@ class Pinger(BaseFrame):
         layout.addWidget(badge)
 
         layout.addItem(stretch)
+
+    def _reapOrphans(self):
+        """Kill any python processes running scrollstack.py or retro_mac.pyw —
+        they're orphans from previous pinger sessions."""
+        if psutil is None:
+            return
+        patterns = ("scrollstack.py", "retro_mac.pyw")
+        own_pid = os.getpid()
+        for p in psutil.process_iter(["pid", "name", "cmdline"]):
+            try:
+                if p.info["pid"] == own_pid:
+                    continue
+                if not p.info["name"] or p.info["name"].lower() not in ("python.exe", "pythonw.exe"):
+                    continue
+                cmd = " ".join(p.info["cmdline"] or [])
+                if any(pat in cmd for pat in patterns):
+                    p.kill()
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
 
     def _auto_position(self):
         rect = ctypes.wintypes.RECT()
