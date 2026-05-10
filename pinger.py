@@ -133,8 +133,9 @@ class Pinger(BaseFrame):
         self.scrollstack_proc = None
 
         super().__init__(app_name="pinger", default_pct=0.18, theme="radix")
-        self.setFixedWidth(620)
         self._reshape_titlebar()
+        self.layout().activate()
+        self.setFixedSize(620, self.sizeHint().height())
         self._auto_position()
 
     def _reshape_titlebar(self):
@@ -144,7 +145,9 @@ class Pinger(BaseFrame):
         Approved layout: [close] [min] [pin] [title] [v_badge] [stretch]
         """
         header = self._root_layout.itemAt(0).widget()
+        header.setFixedHeight(36)
         layout = header.layout()
+        layout.setContentsMargins(12, 6, 12, 6)
 
         # collect all children, then reorder
         items = []
