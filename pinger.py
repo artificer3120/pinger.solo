@@ -333,10 +333,12 @@ class Pinger(BaseFrame):
         if not os.path.exists(AETHERFLOW_PROFILE):
             self._status("aetherflow profile not found", self.theme.accent_red)
             return
+        # Rocky has Windows PowerShell 5.1 (powershell.exe), not pwsh (PS7).
+        # aetherflow profile.ps1 is PS5.1-compatible.
         try:
             subprocess.Popen(
-                ["pwsh", "-NoExit", "-Command",
-                 f". '{AETHERFLOW_PROFILE}'; aetherflow"],
+                ["powershell.exe", "-NoExit", "-ExecutionPolicy", "Bypass",
+                 "-Command", f". '{AETHERFLOW_PROFILE}'; aetherflow"],
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
             )
             self._status("aetherflow launched")
