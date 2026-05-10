@@ -132,7 +132,7 @@ class Pinger(BaseFrame):
         self.minimac_proc = None
         self.scrollstack_proc = None
 
-        super().__init__(app_name="pinger", default_pct=0.18, theme="radix")
+        super().__init__(app_name="pinger.solo", default_pct=0.18, theme="radix")
         self._reshape_titlebar()
         self.layout().activate()
         self.setFixedSize(620, self.sizeHint().height())

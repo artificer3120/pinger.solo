@@ -7,8 +7,9 @@
 | Repo | [artificer3120/pinger](https://github.com/artificer3120/pinger) |
 | Local path | `C:\Users\ctgau\dev\pinger\` |
 | Entry point | `pinger.py` |
-| Window title | `pinger` |
+| Window title | `pinger.solo` (distinct from mesh pinger's `pinger`) |
 | AppUserModelID | `artificer3120.pinger` |
+| AHK Home key | bound to solo pinger toggle (see `hotkeys.ahk`) |
 | Version | see `VERSION` file (currently `0.1.0`) |
 | Theme | radix (from `~/dev/untitledSDK/core/themes/radix.py`) |
 | Concept doc | [docs-pinger on neonforge](http://questboard-ec2.tail7f6073.ts.net:8080/?p=docs-pinger) |
@@ -66,7 +67,7 @@ If the path is missing, the button still renders and is clickable, but reports a
 
 Solo pinger has **no HTTP / IPC surface**. External agents target it via window manipulation only.
 
-- **AHK / WinActivate**: `WinActivate "pinger"` finds it. Caveat: if mesh pinger is also running, both have the same title — Windows returns whichever it indexes first. To disambiguate solo, change `app_name="pinger"` to `app_name="pinger (solo)"` at `Pinger.__init__()`. Window title and `setWindowTitle()` derive from `app_name`.
+- **AHK / WinActivate**: `WinActivate "pinger.solo"` finds it unambiguously. The `Home` key in `library/0-system/config/hotkeys.ahk` is the canonical launcher (toggle pattern: kills if running, launches if not).
 - **AppUserModelID**: solo's is `artificer3120.pinger`, mesh's is `untitledSDK.pinger`. Use this if you need to target via Win32 `Shell_NotifyIcon` or jump-list APIs.
 - **Click-from-script**: `pyautogui` after `WinGetPos`. The button row is laid out left-to-right in the order Ping / Mini-Mac / scrollstack / snap.
 
