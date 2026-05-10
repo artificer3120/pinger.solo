@@ -84,11 +84,12 @@ class RadixButton(QPushButton):
     """Padded radix button with semantic kinds; uses hex literals so BaseFrame's
     global QPushButton rule cannot override the per-button color/background."""
 
+    # Qt QSS uses #AARRGGBB (alpha first), not CSS3's #RRGGBBAA. Use rgba().
     KIND_STYLES = {
-        "primary":   (COLOR_PRIMARY,         "#fff",        "#4f71e5"),
-        "secondary": (COLOR_BG_ALT,          COLOR_TEXT,    "#343538"),
-        "danger":    (f"{COLOR_RED}22",      COLOR_RED,     f"{COLOR_RED}33"),
-        "purple":    (f"{COLOR_PURPLE}22",   COLOR_PURPLE,  f"{COLOR_PURPLE}33"),
+        "primary":   (COLOR_PRIMARY,                  "#fff",       "#4f71e5"),
+        "secondary": (COLOR_BG_ALT,                   COLOR_TEXT,   "#343538"),
+        "danger":    ("rgba(229, 72, 77, 0.13)",      COLOR_RED,    "rgba(229, 72, 77, 0.20)"),
+        "purple":    ("rgba(142, 78, 198, 0.13)",     COLOR_PURPLE, "rgba(142, 78, 198, 0.20)"),
     }
 
     def __init__(self, text, kind="secondary", parent=None):
@@ -168,7 +169,7 @@ class Pinger(BaseFrame):
         badge.setFixedHeight(18)
         badge.setStyleSheet(
             f"#VersionBadge {{"
-            f"  background: {COLOR_PRIMARY}33; color: {COLOR_PRIMARY};"
+            f"  background: rgba(62, 99, 221, 0.20); color: {COLOR_PRIMARY};"
             f"  font-size: 10px; font-weight: 600;"
             f"  padding: 2px 8px; border-radius: 4px; margin-left: 6px;"
             f"}}"
