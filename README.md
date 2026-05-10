@@ -1,81 +1,94 @@
 # pinger
 
-Radix-shelled control panel widget. Independent of untitledSDK's `shells/` folder — its own repo, own process, own version line.
+> **For agents reading this cold:** this is **solo pinger**, an independent radix-shelled control panel widget at `~/dev/pinger/`. It is NOT the same as **mesh pinger**, which lives inside `~/dev/localMesh/` and is bundled into the localMesh server. They share the window title `pinger`. AHK's `Home` key targets mesh pinger, not this one. When the operator says "pinger" without a qualifier, ask which one they mean before acting.
 
-Often referred to as **solo pinger** to distinguish it from **mesh pinger** (the older Win95-styled widget bundled inside [localMesh](https://github.com/artificer3120/localMesh) that AHK's `Home` key targets). Same family, different lifecycle.
+| Attribute | Value |
+|---|---|
+| Repo | [artificer3120/pinger](https://github.com/artificer3120/pinger) |
+| Local path | `C:\Users\ctgau\dev\pinger\` |
+| Entry point | `pinger.py` |
+| Window title | `pinger` |
+| AppUserModelID | `artificer3120.pinger` |
+| Version | see `VERSION` file (currently `0.1.0`) |
+| Theme | radix (from `~/dev/untitledSDK/core/themes/radix.py`) |
+| Concept doc | [docs-pinger on neonforge](http://questboard-ec2.tail7f6073.ts.net:8080/?p=docs-pinger) |
+
+---
 
 ## What it does
 
-Four-button surface, radix slate theme, frameless on the untitledSDK BaseFrame.
+Four-button radix control panel. Each button is hardcoded in `build_content()`; future direction is registry-driven (see docs-pinger).
 
-| Button | Behavior |
-|---|---|
-| **Ping!** | Plays a randomized droid_chirp via `winsound.Beep` and writes a pseudo-notification line to the statusbar. Counter increments. |
-| **Mini-Mac** | Toggle. Spawns `~/dev/retro-mac/retro_mac.pyw` via `pythonw`. Press again to terminate. Button colors swap secondary → danger when running. |
-| **scrollstack()** | Toggle. Spawns `~/forge3/scrollstack/scrollstack.py` with the `--zone left_third --display 1 --class CASCADIA --scroll-from center_third` preset. Press again to terminate. |
-| **snap** | Fires `ShareX -RectangleRegion`. Drops you into rectangle-snip mode. |
+| Button | Kind | Behavior |
+|---|---|---|
+| **Ping!** | primary | Plays a randomized `winsound.Beep` chirp; writes a pseudo-notification to the statusbar; increments counter. Local only — does NOT call localMesh. |
+| **Mini-Mac** | toggle (secondary ↔ danger) | Spawns `~/dev/retro-mac/retro_mac.pyw` via `pythonw`; second press calls `proc.terminate()`. |
+| **scrollstack()** | toggle (purple) | Spawns `~/forge3/scrollstack/scrollstack.py` with the `--zone left_third --display 1 --class CASCADIA --scroll-from center_third` preset; second press terminates. |
+| **snap** | secondary | Fires `C:\Program Files\ShareX\ShareX.exe -RectangleRegion`. |
 
-Optional dependencies degrade gracefully — a missing target script reports the failure in the statusbar instead of crashing.
+Optional deps degrade gracefully — missing target script writes a red statusbar line, does NOT crash.
 
-## Stack
-
-- PyQt5 frameless, on **untitledSDK** `BaseFrame(theme="radix")`
-- Imports the SDK at runtime via `sys.path.insert(0, ~/dev/untitledSDK)` — no install step
-- No build step required to run; `pythonw pinger.py` is the deployment
+---
 
 ## Run
 
 ```powershell
-python pinger.py        # foreground (logs to console)
-pythonw pinger.py       # background (taskbar widget)
+# foreground (logs to console)
+python C:\Users\ctgau\dev\pinger\pinger.py
+
+# background (taskbar widget, what the operator usually wants)
+pythonw C:\Users\ctgau\dev\pinger\pinger.py
 ```
 
-The widget auto-positions to bottom-center of the work area on launch.
+The widget auto-positions to bottom-center of the work area on launch. It uses `Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint`. Drag the titlebar to move; drag the edges to resize (invisible grips, last 4–16px of each side).
 
-## Requirements
+---
 
-- Python 3.10+
-- PyQt5 ≥ 5.15
-- **untitledSDK** checked out at `~/dev/untitledSDK` (the `core/base_frame.py` and `core/themes/radix.py` are required)
+## Required deps
 
-### Per-button optional deps
+- **Python 3.10+**
+- **PyQt5 ≥ 5.15** — `pip install PyQt5`
+- **untitledSDK** checked out at `C:\Users\ctgau\dev\untitledSDK\` — pinger imports `core.base_frame.BaseFrame` and `core.themes.get_theme` from there. The SDK path is hardcoded in `pinger.py` line ~21 (`SDK_PATH = os.path.expanduser("~/dev/untitledSDK")`).
 
-| Button | Needs |
+## Optional deps (per button)
+
+| Button | Required path |
 |---|---|
-| Mini-Mac | `~/dev/retro-mac/retro_mac.pyw` |
-| scrollstack() | `~/forge3/scrollstack/scrollstack.py` |
+| Mini-Mac | `C:\Users\ctgau\dev\retro-mac\retro_mac.pyw` |
+| scrollstack() | `C:\Users\ctgau\forge3\scrollstack\scrollstack.py` |
 | snap | `C:\Program Files\ShareX\ShareX.exe` |
 
-## Connecting to pinger
+If the path is missing, the button still renders and is clickable, but reports a red error to the statusbar instead of acting.
 
-Pinger is a Qt widget — there is **no IPC surface yet**. External tools target it the same way Windows targets any window: by title.
+---
 
-| What | How |
-|---|---|
-| Window title | `pinger` (set via `BaseFrame.app_name`) |
-| App User Model ID | `artificer3120.pinger` (so it gets its own taskbar group, separate from mesh pinger's `untitledSDK.pinger`) |
-| AHK example | `WinActivate "ahk_class Qt5152QWindowToolSaveBits ahk_exe pythonw.exe"` — or simpler, `WinActivate "pinger"` if no other widget is using that title |
-| Click-from-script | `pyautogui` against the running window after `WinGetPos` |
+## Targeting from outside
 
-**Heads-up:** mesh pinger uses the same window title (`pinger`). If both are running, `WinActivate "pinger"` grabs whichever Windows ranks first. Kill the one you don't want, or rename solo's title (edit `app_name="pinger (solo)"` in `Pinger.__init__`).
+Solo pinger has **no HTTP / IPC surface**. External agents target it via window manipulation only.
 
-There is no `/ping` HTTP endpoint, message-bus subscription, or registry handle in this build. Adding one is part of the future direction (see below).
+- **AHK / WinActivate**: `WinActivate "pinger"` finds it. Caveat: if mesh pinger is also running, both have the same title — Windows returns whichever it indexes first. To disambiguate solo, change `app_name="pinger"` to `app_name="pinger (solo)"` at `Pinger.__init__()`. Window title and `setWindowTitle()` derive from `app_name`.
+- **AppUserModelID**: solo's is `artificer3120.pinger`, mesh's is `untitledSDK.pinger`. Use this if you need to target via Win32 `Shell_NotifyIcon` or jump-list APIs.
+- **Click-from-script**: `pyautogui` after `WinGetPos`. The button row is laid out left-to-right in the order Ping / Mini-Mac / scrollstack / snap.
 
-## Adding / removing buttons
+There is no `/ping` HTTP endpoint, mesh registration, or pub/sub hook. The statusbar shows `localMesh :8801` as a static label — pinger does NOT actually connect to localMesh in this build.
 
-In v0.1, buttons are **hardcoded in source**. The registry-driven model (add/remove via GUI, no code edit) is the next phase — see [docs-pinger](http://questboard-ec2.tail7f6073.ts.net:8080/?p=docs-pinger). Until then:
+---
 
-### Add a button
+## Adding a button
 
-Open `pinger.py`, find `build_content()`, add a row after the existing four:
+Editing `pinger.py` is the only way in v0.1. Three changes:
+
+**1. In `Pinger.build_content()`, add to the `row = QHBoxLayout()` block:**
 
 ```python
-self.btn_thing = RadixButton("Thing", kind="primary")  # primary | secondary | danger | purple
+self.btn_thing = RadixButton("Thing", kind="primary")
 self.btn_thing.clicked.connect(self.doThing)
 row.addWidget(self.btn_thing)
 ```
 
-Then define the handler on `Pinger`:
+`kind=` must be one of: `primary` (blue), `secondary` (slate), `danger` (red), `purple`. Add new kinds in `RadixButton.KIND_STYLES` if you need another color — use `rgba(r, g, b, 0.13)` form for backgrounds with alpha, NOT `#RRGGBBAA` (see Gotchas below).
+
+**2. Define the handler as a method on `Pinger`:**
 
 ```python
 def doThing(self):
@@ -83,41 +96,97 @@ def doThing(self):
     self._status("thing fired")
 ```
 
-The four `kind=` values map to the radix palette: primary (blue, the Ping! style), secondary (slate, Mini-Mac/snap), danger (red), purple (scrollstack). Add new kinds in `RadixButton.KIND_STYLES` if you need another.
+The `_status(text, color=None)` helper updates the statusbar. Pass `self.theme.accent_red` as color for errors.
 
-If you add a fifth button to the same row, increase `setFixedSize(620, ...)` in `Pinger.__init__()` to give it room — or move to a 2-row layout by adding a second `QHBoxLayout`.
+**3. If adding a 5th+ button to the same row,** increase the widget width at `Pinger.__init__()`:
 
-### Remove a button
+```python
+self.setFixedSize(620, self.sizeHint().height())
+#                ^^^ bump this for more buttons in one row
+```
 
-Delete the four lines for that button in `build_content()` (the `RadixButton(...)` construction, the `clicked.connect()`, the `row.addWidget()`, and any state attribute used in the handler — e.g., `self.minimac_proc`). Remove the handler method if nothing else calls it. The widget will resize itself to fit on next launch (sizeHint-driven).
+For a 2-row layout, add a second `QHBoxLayout()` and `bv.addLayout(row2)` after the first. The widget will grow vertically via `sizeHint().height()` automatically.
 
-### Toggle vs one-shot
+---
 
-For a toggle button (start/stop pattern like Mini-Mac), keep a process handle on `self`, check `proc.poll() is None` for "still running," and swap `setKind()` on the button between secondary/danger to signal state. The `toggleMinimac` and `toggleScrollstack` methods are the templates.
+## Removing a button
 
-## Layout details
+In `Pinger.build_content()`, delete:
+1. The `RadixButton(...)` construction
+2. The `clicked.connect(...)` call
+3. The `row.addWidget(...)` call
 
-- Traffic dots are placed on the **left** of the titlebar (the SDK default is right; pinger reshapes the header in `_reshape_titlebar()` after `super().__init__()`).
-- Version badge sits inline with the title, blue at 20% alpha.
-- Header is clamped to `setFixedHeight(36)` to prevent inner-widget reflow from bloating the titlebar.
-- Widget is sized to content via `layout().activate()` + `setFixedSize(620, sizeHint().height())`, since BaseFrame's default is a square (h=w) which left a tall stretch in the middle of the body.
+In `Pinger`:
+4. The handler method (e.g., `def snapRegion(self): ...`)
+5. Any state attribute used by the handler (e.g., `self.minimac_proc = None` in `__init__`)
 
-## Gotchas (learned the hard way)
+The widget resizes itself on next launch — no manual width adjustment needed.
 
-- **Qt QSS hex with alpha is `#AARRGGBB`, not CSS3's `#RRGGBBAA`.** Writing `#8e4ec622` for "purple at 13% alpha" actually parses as alpha=0x8e, R=0x4e, G=0xc6, B=0x22 — bright green. Use `rgba()` form for any color with alpha.
-- **BaseFrame sets a global `QPushButton { ... }` rule in its stylesheet.** A child's `setStyleSheet("QPushButton { ... }")` ties on specificity with the ancestor's rule. Use an ID selector (`#RadixButton { ... }`) on `setObjectName("RadixButton")` to win the cascade.
-- **A bare `QLabel` inside a `QHBoxLayout` will stretch vertically** (default sizePolicy is Preferred). The version badge needs `setFixedHeight(...)` or it expands to fill the row.
+---
+
+## Toggle button pattern
+
+For start/stop behavior (like Mini-Mac), the template is:
+
+```python
+def toggleX(self):
+    if self.x_proc and self.x_proc.poll() is None:   # running → stop
+        self.x_proc.terminate()
+        self.x_proc = None
+        self.btn_x.setText("X")
+        self.btn_x.setKind("secondary")
+        self._status("x stopped")
+        return
+
+    # not running → start
+    if not os.path.exists(X_PATH):
+        self._status("x script not found", self.theme.accent_red)
+        return
+    try:
+        self.x_proc = subprocess.Popen([...], creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        self.btn_x.setText("stop X")
+        self.btn_x.setKind("danger")
+        self._status("x running")
+    except Exception as e:
+        self._status(f"x failed: {e}", self.theme.accent_red)
+```
+
+Initialize `self.x_proc = None` in `Pinger.__init__()`.
+
+---
+
+## Layout invariants — DO NOT break
+
+These are load-bearing for the radix shell to look right:
+
+- `header.setFixedHeight(36)` in `_reshape_titlebar()` — without this, the QFrame stretches when inner widgets resize, bloating the titlebar.
+- `self.layout().activate()` then `self.setFixedSize(620, self.sizeHint().height())` at end of `__init__()` — without this, BaseFrame's `h = w` default leaves a 620-tall widget with empty middle.
+- `badge.setFixedHeight(18)` in `_reshape_titlebar()` — without this, the QLabel stretches vertically inside its QHBoxLayout (default sizePolicy is Preferred → expand).
+- `self.setObjectName("RadixButton")` in `RadixButton.__init__()` and `#RadixButton { ... }` selector in `_apply()` — without this, BaseFrame's global `QPushButton { ... }` rule wins on cascade and overrides per-button colors.
+
+---
+
+## Gotchas (these will burn you again if you don't know)
+
+- **Qt QSS uses `#AARRGGBB` (alpha first), NOT CSS3's `#RRGGBBAA`.** Writing `#8e4ec622` for "purple at 13% alpha" actually parses as alpha=0x8e, R=0x4e, G=0xc6, B=0x22 → bright green. Always use `rgba(r, g, b, 0.13)` for QSS color values with alpha. Never copy hex-with-alpha from CSS3 mockups directly.
+- **BaseFrame's stylesheet sets a global `QPushButton { ... }` rule** at `~/dev/untitledSDK/core/base_frame.py` lines 95–104. Any QPushButton descendant inherits it unless overridden by a more specific selector. ID selectors (`#RadixButton`) win over typename selectors (`QPushButton`).
+- **BaseFrame defaults to a square widget** (`h = w` at line 74 of `base_frame.py`). Setting `setFixedWidth(620)` alone leaves you with `620×620`; the middle of the body stretches. Always pair width with `sizeHint().height()` after `layout().activate()`.
+- **`QLabel` default vertical sizePolicy is Preferred → Expanding inside HBox.** Any pill/badge label needs `setFixedHeight(...)` or it grows to fill the row, which then triggers a feedback loop where the row height grows because the badge filled it.
+
+---
 
 ## Future direction
 
-The next phase generalizes pinger into a **registry-driven button rack** — buttons + their bound functions become entries in a JSON registry, edited via GUI; pinger becomes a portable hub that travels between mesh nodes carrying its registry, with mesh-aware routing. Concept doc + UI proposals live at:
+Next phase generalizes pinger into a **mobile detachable hub** — buttons + bound functions become entries in a JSON registry, edited via GUI, and the rack travels between mesh nodes carrying its registry, with mesh-aware routing via a `scope` field. Concept + diagrams + UI proposals at:
 
 [neonforge.untitledprojects.io/?p=docs-pinger](http://questboard-ec2.tail7f6073.ts.net:8080/?p=docs-pinger)
 
-The current build is the v0.1 frame the future work will generalize from.
+The current build is the v0.1 frame the future work will generalize from. When working on solo pinger toward the registry model, read docs-pinger first.
+
+---
 
 ## Status
 
 - v0.1.0 — first independent-repo build, four-button surface, radix shell.
-- Repo: [artificer3120/pinger](https://github.com/artificer3120/pinger)
-- Coexists with mesh pinger; they share window title `pinger`, so AHK Home-key targeting prefers whichever it finds first. Kill solo if it interferes.
+- Coexists with mesh pinger; same window title. Operator decides which to keep running.
+- No tests, no CI, no PyInstaller spec. Run from source.
