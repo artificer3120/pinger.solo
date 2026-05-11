@@ -36,7 +36,11 @@ from PyQt5.QtGui import QIcon
 from core.base_frame import BaseFrame
 from core.themes import get_theme
 
-__version__ = "0.1.0"
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION")) as _vf:
+        __version__ = _vf.read().strip()
+except OSError:
+    __version__ = "unknown"
 
 LOCALMESH_URL  = "http://127.0.0.1:8801"
 RETRO_MAC_PATH = os.path.expanduser("~/dev/retro-mac/retro_mac.pyw")
